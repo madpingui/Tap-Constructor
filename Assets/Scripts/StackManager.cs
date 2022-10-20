@@ -51,9 +51,6 @@ public class StackManager : MonoBehaviour
     public Transform city, highScoreObj;
     private Transform offsetCity;
 
-    public GameObject videoPanel;
-    private bool alreadySawVideo;
-
     private void Start()
     {
         offsetCity = city.transform;
@@ -420,29 +417,20 @@ public class StackManager : MonoBehaviour
 
     private void EndGame()
     {
-        if(alreadySawVideo == false)
-        {
-            videoPanel.SetActive(true);
-            Time.timeScale = 0;
-        }
-        else
-        {
-            if (PlayerPrefs.GetInt("hiscore") < scoreCount)
-                PlayerPrefs.SetInt("hiscore", scoreCount);
+        if (PlayerPrefs.GetInt("hiscore") < scoreCount)
+            PlayerPrefs.SetInt("hiscore", scoreCount);
 
-            PlayerPrefs.SetInt("score", scoreCount);
-            gameOver = true;
-            StartCoroutine(backgroundMusic.ComboBackground(-1));
-            endPanel.SetActive(true);
-            theStack[stackIndex].AddComponent<Rigidbody>();
-            GameManager.Instance.EndGame();
-            scoreText.gameObject.SetActive(false);
-        }
+        PlayerPrefs.SetInt("score", scoreCount);
+        gameOver = true;
+        StartCoroutine(backgroundMusic.ComboBackground(-1));
+        endPanel.SetActive(true);
+        theStack[stackIndex].AddComponent<Rigidbody>();
+        GameManager.Instance.EndGame();
+        scoreText.gameObject.SetActive(false);
     }
 
     public void Die()
     {
-        videoPanel.SetActive(false);
         Time.timeScale = 1;
 
         if (PlayerPrefs.GetInt("hiscore") < scoreCount)
@@ -457,67 +445,8 @@ public class StackManager : MonoBehaviour
         scoreText.gameObject.SetActive(false);
     }
 
-    public void ShowAd()
-    {
-        if (Advertisement.IsReady("rewardedVideo"))
-        {
-            var options = new ShowOptions { resultCallback = HandleShowResult };
-            Advertisement.Show("rewardedVideo", options);
-        }
-    }
-
-    private void HandleShowResult(ShowResult result)
-    {
-        switch (result)
-        {
-            case ShowResult.Finished:
-                Debug.Log("The ad was successfully shown.");
-                videoPanel.SetActive(false);
-                Time.timeScale = 1;
-                alreadySawVideo = true;
-
-                if (isMovingOnX)
-                {
-                    if (stackBounds.x <= 0.1f)
-                    {
-                        stackBounds.x += STACK_BOUNDS_GAIN;
-                        if (stackBounds.x > BOUNDS_SIZE)
-                            stackBounds.x = BOUNDS_SIZE;
-                        float middle = lastTilePosition.x + theStack[stackIndex].transform.localPosition.x / 2;
-                        theStack[stackIndex].transform.GetChild(0).localScale = new Vector3(stackBounds.x, 1, stackBounds.y);
-                        theStack[stackIndex].transform.localPosition = new Vector3(middle - (lastTilePosition.x / 2), scoreCount * 0.3f, lastTilePosition.z);
-                    }
-                }
-                else
-                {
-                    if (stackBounds.y <= 0.1f)
-                    {
-                        stackBounds.y += STACK_BOUNDS_GAIN;
-                        if (stackBounds.y > BOUNDS_SIZE)
-                            stackBounds.y = BOUNDS_SIZE;
-                        float middle = lastTilePosition.z + theStack[stackIndex].transform.localPosition.z / 2;
-                        theStack[stackIndex].transform.GetChild(0).localScale = new Vector3(stackBounds.x, 1, stackBounds.y);
-                        theStack[stackIndex].transform.localPosition = new Vector3(lastTilePosition.x, scoreCount * 0.3f, middle - (lastTilePosition.z / 2));
-                    }
-                }
-
-                break;
-            case ShowResult.Skipped:
-                Debug.Log("The ad was skipped before reaching the end.");
-                videoPanel.SetActive(true);
-                break;
-            case ShowResult.Failed:
-                Debug.LogError("The ad failed to be shown.");
-                videoPanel.SetActive(true);
-                break;
-        }
-    }
-
-
-
     public void OnButtonClick(string sceneName)
     {
         SceneManager.LoadScene(sceneName);
-    }
-    
+    }  
 }
